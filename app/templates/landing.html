@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Welcome | InterviewAce{% endblock %}
+{% block content %}
+  <h1 style="text-align: center;">Welcome to InterviewAce</h1>
+  <p style="text-align: center;">Your AI-powered interview simulator.</p>
+  <div style="margin-top: 2em;" style="text-align: center;">
+    <a class="btn" href="{{ url_for('register_form') }}">Register</a>
+    <a class="btn" href="{{ url_for('login_form') }}" style="margin-left: 1em;">Login</a>
+  </div>
+{% endblock %}

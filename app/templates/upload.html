@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-2xl font-bold mb-4">Upload Resume & Job Description</h2>
+<form id="uploadForm" action="/files/upload" method="post" enctype="multipart/form-data" class="space-y-4">
+  <input type="hidden" name="user_id" value="{{ user_id if user_id else 1 }}" />
+  <label class="block">Resume PDF<input type="file" name="resume" accept="application/pdf" class="mt-1" /></label>
+  <label class="block">Job Description PDF<input type="file" name="jd" accept="application/pdf" class="mt-1" /></label>
+  <button class="bg-blue-600 text-white px-4 py-2 rounded">Upload</button>
+</form>
+{% endblock %}

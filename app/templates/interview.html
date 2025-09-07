@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mock Interview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
+
+  <div class="w-full max-w-3xl bg-white rounded-xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold mb-4 text-center">Mock Interview</h1>
+
+    <!-- Question Area -->
+    <div id="questionArea" class="text-lg font-medium text-gray-800 mb-6"></div>
+
+    <!-- Answer Box -->
+    <textarea id="answerBox" rows="5" class="w-full p-3 border rounded-lg mb-4" placeholder="Type your answer here..."></textarea>
+
+    <!-- Audio Controls -->
+    <div class="flex gap-4 mb-4">
+      <button id="recordBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">🎤 Start Recording</button>
+      <button id="stopBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 hidden">⏹ Stop Recording</button>
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex justify-between items-center">
+      <button id="nextBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">Next ➜</button>
+      <button id="submitBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 hidden">✅ Submit Interview</button>
+    </div>
+
+    <!-- Result -->
+    <div id="resultArea" class="mt-6"></div>
+  </div>
+
+  <!-- Questions JSON -->
+  <script id="questions-json" type="application/json">
+    {{ questions_json | safe }}
+  </script>
+  <script>
+    const UPLOAD_ID = "{{ upload_id }}";
+
+    // Parse questions
+    const raw = document.getElementById("questions-json").textContent.trim();
+    console.log("RAW QUESTIONS JSON:", raw);
+
+    let QUESTIONS = [];
+    try {
+      QUESTIONS = JSON.parse(raw);
+    } catch (e) {
+      console.error("JSON parse failed:", e);
+    }
+    console.log("Parsed QUESTIONS:", QUESTIONS);
+
+    // DOM elements
+    const questionArea = document.getElementById("questionArea");
+    const ansBox = document.getElementById("answerBox");
+    const recordBtn = document.getElementById("recordBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const resultArea = document.getElementById("resultArea");
+
+    let currentIndex = 0;
+    let qaList = [];
+    let currentAudioDataUrl = null;
+    let mediaRecorder, audioChunks = [];
+
+    // Show a question
+    function showQuestion() {
+      if (currentIndex < QUESTIONS.length) {
+        questionArea.textContent = QUESTIONS[currentIndex];
+        ansBox.value = "";
+        currentAudioDataUrl = null;
+        recordBtn.classList.remove("hidden");
+        stopBtn.classList.add("hidden");
+
+        // Last question? show submit, else show next
+        if (currentIndex === QUESTIONS.length - 1) {
+          nextBtn.classList.add("hidden");
+          submitBtn.classList.remove("hidden");
+        } else {
+          nextBtn.classList.remove("hidden");
+          submitBtn.classList.add("hidden");
+        }
+      } else {
+        questionArea.textContent = "✅ Interview complete!";
+        ansBox.classList.add("hidden");
+        recordBtn.classList.add("hidden");
+        stopBtn.classList.add("hidden");
+        nextBtn.classList.add("hidden");
+        submitBtn.classList.add("hidden");
+      }
+    }
+
+    // Save current answer
+    function saveAnswer() {
+      qaList.push({
+        q: QUESTIONS[currentIndex],
+        a: ansBox.value.trim(),
+        audio: currentAudioDataUrl
+      });
+      currentIndex++;
+    }
+
+    // Next button
+    nextBtn.addEventListener("click", () => {
+      saveAnswer();
+      showQuestion();
+    });
+
+    // Submit button
+    submitBtn.addEventListener("click", async () => {
+      console.log("📨 Submit button clicked!");
+      if (currentIndex < QUESTIONS.length) {
+        saveAnswer();
+      }
+      console.log("Submitting interview payload:", qaList);
+
+      // Disable the button and show status
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Recording your response...";
+
+      try {
+        const resp = await fetch("/interview/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ upload_id: UPLOAD_ID, qa_list: qaList })
+        });
+
+        if (!resp.ok) {
+          throw new Error(`Server responded with ${resp.status}`);
+        }
+
+        const result = await resp.json();
+        resultArea.innerHTML = `
+          <div class="p-4 bg-green-100 rounded-lg">
+            <p class="text-lg font-bold">Score: ${result.score} / 10</p>
+            <p class="text-lg font-bold">Summary</p>
+            <p class="text-gray-700">${result.summary}</p>
+            
+          </div>`;
+      } catch (err) {
+        console.error("❌ Submission failed:", err);
+        resultArea.innerHTML = `
+          <div class="p-4 bg-red-100 rounded-lg">
+            <p class="text-lg font-bold">Error</p>
+            <p class="text-gray-700">${err.message}</p>
+          </div>`;
+      } finally {
+        // Re-enable the button and reset text
+        submitBtn.disabled = false;
+        submitBtn.textContent = "✅ Submit Interview";
+      }
+    });
+
+    // Recording
+    recordBtn.addEventListener("click", async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            currentAudioDataUrl = reader.result;
+          };
+          reader.readAsDataURL(audioBlob);
+        };
+
+        mediaRecorder.start();
+        recordBtn.classList.add("hidden");
+        stopBtn.classList.remove("hidden");
+      } catch (err) {
+        console.error("🎤 Mic access failed:", err);
+      }
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
+      recordBtn.classList.remove("hidden");
+      stopBtn.classList.add("hidden");
+    });
+
+    // Start interview
+    if (QUESTIONS.length > 0) {
+      showQuestion();
+    } else {
+      questionArea.textContent = "⚠️ No questions available.";
+    }
+  </script>
+</body>
+</html>

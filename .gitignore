@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+.env
+.venv/
+venv/
+env/
+*.sqlite3
+db.sqlite3
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+
+# Static/Uploads (if you store user uploads)
+app/static/uploads/
+uploads/
+
+# Compiled
+*.so
+*.dll
+*.exe
+
+# Test/coverage
+htmlcov/
+.coverage
+.tox/
+.nox/
+.cache/
+pytest_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Misc
+*.bak

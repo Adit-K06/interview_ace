@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Register | InterviewAce{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2 class="center-text">Register</h2>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+  <form method="post" action="/auth/register">
+    <label>Email:</label>
+    <input type="email" name="email" required>
+    <label>Password:</label>
+    <input type="password" name="password" required>
+    <button type="submit" class="btn primary">Register</button>
+  </form>
+  <p class="small">
+    Already have an account? <a href="/auth/login">Login here</a>
+  </p>
+</div>
+{% endblock %}

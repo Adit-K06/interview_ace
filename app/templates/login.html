@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Login | InterviewAce{% endblock %}
+{% block content %}
+  <h2 class="text-2xl font-bold mb-4">Login</h2>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+  <form action="/auth/login" method="post" class="space-y-4">
+    <label>Email:</label>
+    <input type="email" name="email" required class="w-full p-2 border rounded">
+    <label>Password:</label>
+    <input type="password" name="password" required class="w-full p-2 border rounded">
+    <button type="submit" class="btn bg-green-600 text-white px-4 py-2 rounded">Login</button>
+  </form>
+  <p>Not registered? <a href="{{ url_for('register_form') }}">Register here</a></p>
+{% endblock %}

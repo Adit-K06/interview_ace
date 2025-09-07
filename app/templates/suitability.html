@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-4 text-center underline underline-offset-4" style="text-align: center;">Suitability Analysis</h2>
+
+{% if error %}
+  <div class="p-4 bg-red-100 text-red-700 rounded">{{ error }}</div>
+{% elif result %}
+  <div class="grid grid-cols-2 gap-6">
+    <!-- Circular score display -->
+    <div class="p-6 bg-white rounded shadow text-center">
+      <div class="mx-auto" style="--pct: {{ result.score }};">
+        <div class="progress-circle">
+          <span class="score-label">{{ result.score }}%</span>
+        </div>
+      </div>
+
+      <p class="mt-4"><span class="font-bold underline underline-offset-4" style="font-weight: bold; text-decoration: underline; margin-top: 25px;">Summary</span></p>
+      <p>{{ result.summary }}</p>
+    </div>
+
+    <div class="p-6 bg-white rounded shadow">
+      <p class="mt-4"><span class="font-bold underline underline-offset-4" style="font-weight: bold; text-decoration: underline; margin-top: 25px;">Strengths</span></p>
+      <ul class="list-disc ml-5">
+        {% for s in result.strengths %}
+          <li>{{ s }}</li>
+        {% endfor %}
+      </ul>
+      <p class="mt-4"><span class="font-bold underline underline-offset-4" style="font-weight: bold; text-decoration: underline; margin-top: 25px;">Weaknesses</span></p>
+      <ul class="list-disc ml-5">
+        {% for w in result.weaknesses %}
+          <li>{{ w }}</li>
+        {% endfor %}
+      </ul>
+      <p class="mt-4"><span class="font-bold underline underline-offset-4" style="font-weight: bold; text-decoration: underline; margin-top: 25px;">Recommendations</span></p>
+      <ul class="list-disc ml-5">
+        {% for r in result.recommendations %}
+          <li>{{ r }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <form action="/interview/start/{{ upload_id }}" method="get" class="flex justify-center">
+      <button type="submit" style="display: block; margin: 0 auto; margin-top: 50px;" class="bg-green-600 text-white px-6 py-3 rounded mt-16 font-bold shadow transition hover:bg-green-700">
+        <span class="font-bold">Start Interview</span>
+      </button>
+  </form>
+
+{% else %}
+  <p>No result yet.</p>
+{% endif %}
+{% endblock %}
