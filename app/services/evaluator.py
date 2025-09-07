@@ -130,6 +130,10 @@ def evaluate_interview(resume_text: str, jd_text: str, qa_list: list):
                 return {
                     "score": data['score'],
                     "summary": data['summary'],
+                    "positives": data['positives'],
+                    "improvements": data['improvements'],
+                    "detailed_evaluation": data['detailed_evaluation'],
+                    "feedback": data['feedback']
                 }
         except Exception as e:
             print("Gemini API error:", e)
